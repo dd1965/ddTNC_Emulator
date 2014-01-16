@@ -106,6 +106,15 @@ namespace TNCAX25Emulator
             
             
         }
+        public int decodeFastSSDV(byte[] packet)
+        {
+
+            int result = ssdvTrial.decodeSSDV(packet);
+            //System.Console.WriteLine("RS "+test);
+            return result;
+
+
+        }
 
         public void buildSSTV(byte[] packet)
         {
@@ -125,7 +134,7 @@ namespace TNCAX25Emulator
                       if (jpeginputdata.Length >= 256) jpeginputdata.SetLength(jpeginputdata.Length - 256); else jpeginputdata.SetLength(0);
                     // if (jpeginputdata.Length % 256 > 0) jpeginputdata.SetLength(jpeginputdata.Length - ((jpeginputdata.Length % 256)*256));
                       ssdvTrial.freeMem();
-                      System.Console.WriteLine("Test point 2" + jpeginputdata.Length);
+                   //   System.Console.WriteLine("Test point 2" + jpeginputdata.Length);
                 return;
             }
            // if (result == 1) EOIreceived = false;
@@ -135,8 +144,8 @@ namespace TNCAX25Emulator
                 
                 EOIreceived = false;
                // jpeginputdata.SetLength(0);
-                System.Console.WriteLine("Test point 3 " + jpeginputdata.Length);
-                System.Console.Write("-> " + pckt);
+          //      System.Console.WriteLine("Test point 3 " + jpeginputdata.Length);
+            //    System.Console.Write("-> " + pckt);
                 pcktzeroalreadyreceived = false;
                 pckt = 0;
                 return;
@@ -144,7 +153,7 @@ namespace TNCAX25Emulator
             constructHeader();
 
             // Console.WriteLine("Result " + result);
-            System.Console.Write("-> " + pckt);
+           // System.Console.Write("-> " + pckt);
             if(!pcktzeroalreadyreceived)
                 if(pckt==0) pcktzeroalreadyreceived=true;
 
@@ -152,12 +161,12 @@ namespace TNCAX25Emulator
              {
                  if (ImgIdS != ImgIdSo)
                  {
-                     System.Console.WriteLine("Test point 4 " + jpeginputdata.Length);
+                  //   System.Console.WriteLine("Test point 4 " + jpeginputdata.Length);
                      if (pckt == 0)
                      {
                          jpeginputdata.SetLength(0);
                          Write(jpeginputdata, packet);//This needs to unwind all the received packets
-                         System.Console.WriteLine("Test point 5 " + jpeginputdata.Length);
+                    //     System.Console.WriteLine("Test point 5 " + jpeginputdata.Length);
                      }
                  }
                  else
@@ -170,9 +179,9 @@ namespace TNCAX25Emulator
                      }
                  }
              }
-
+          
              ImgIdSo = ImgIdS;
-           
+             
 
              filenameout = Logging.getMydirectory();
              filenameout = filenameout + "\\SSDV_PIC_ID" + ImgIdS + "_" + day + ".jpeg";
@@ -238,7 +247,7 @@ namespace TNCAX25Emulator
                 jpeginputdata.SetLength(0);
                 //ssdvTrial.freeMem();
                 EOIreceived = true;
-                System.Console.WriteLine("EOI");
+              //  System.Console.WriteLine("EOI");
             }
             /*if (mcuid >= mcublock)
             {
@@ -313,7 +322,7 @@ namespace TNCAX25Emulator
         {
             this.waveOut = waveOut;
             gt = gtin;
-            gt.ThresholdReached += c_ThresholdReached;
+           // gt.ThresholdReached += c_ThresholdReached;
 
         }
         public void setMessageHandler(MessageHandler mh){
@@ -440,20 +449,26 @@ namespace TNCAX25Emulator
         }
         private void sendIdentifyString(int packetid)
         {
+            //$$PSB,sequence,time,lat,long,altitude,speed,satellites,lock,temp_in,temp_out,Vin*CHECKSUM\n 
+            //   6      4      8   9    10     5       3        2       1     3        3     3 =60bytes
             string TestString;
             if (packetid == 0)
             {
-                TestString = Usersetting.callsign + "," + Usersetting.mySeqnum + "," + DateTime.Now.ToString("HH:mm:ss") + "," + Usersetting.latitude + "," + Usersetting.longitude + "," + Usersetting.height + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + ",Test" + "*";
+                //TestString = Usersetting.callsign + "," + Usersetting.mySeqnum + "," + DateTime.Now.ToString("HH:mm:ss") + "," + Usersetting.latitude + "," + Usersetting.longitude + "," + Usersetting.height + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + ",Test" + "*";
+
+               TestString= Usersetting.callsign.Substring(0, 6) + Usersetting.mySeqnum.ToString("0000") + DateTime.Now.ToString("HH:mm:ss") + Usersetting.latituded.ToString("+#00.0000;-#00.0000;0") + Usersetting.longitutuded.ToString("+#000.0000;-#000.0000;0") + String.Format("{0:00000}", Usersetting.heightd) + "000" + "00" + "0" + "000" + "000" + "000";
             }
             else
             {
-                double calcTX_Time = packetid * 13;//11 * 1/300 * 256
+                double calcTX_Time = packetid * 1.733;//8 * 1/1200 * 256 +  header and tail.
                 int fraction =(int) (calcTX_Time - Math.Floor(calcTX_Time) )* 100;
                 int intpart = (int)Math.Floor(calcTX_Time);
                 DateTime date = DateTime.Now;
                 TimeSpan time = new TimeSpan(0, 0, 0, intpart, fraction);
                 DateTime combined = date.Add(time);
-                TestString = Usersetting.callsign + "," + Usersetting.mySeqnum + "," + combined.ToString("HH:mm:ss") + "," + Usersetting.latitude + "," + Usersetting.longitude + "," + Usersetting.height + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + "," + 0 + ",Test" + "*";
+
+                TestString = Usersetting.callsign.Substring(0, 6) + Usersetting.mySeqnum.ToString("0000") + combined.ToString("HH:mm:ss") + Usersetting.latituded.ToString("+#00.0000;-#00.0000;0") + Usersetting.longitutuded.ToString("+#000.0000;-#000.0000;0") + String.Format("{0:00000}", Usersetting.heightd) + "000" + "00" + "0" + "000" + "000" + "000";
+             
             }
             byte[] b2 = System.Text.Encoding.ASCII.GetBytes(TestString);
             byte[] b3 = new byte[TestString.Length+4];
@@ -465,7 +480,8 @@ namespace TNCAX25Emulator
             crclohi[0] = (byte)((crc >> 8) & 0xFF);
             string crchex = BitConverter.ToString(crclohi).Replace("-", string.Empty);
             Usersetting.mySeqnum++;
-            TestString = "$$$$" + TestString + crchex + "\n";
+          //  TestString = "$$$$" + TestString + crchex + "\n";
+            TestString = "$$" + TestString;
             b2 = System.Text.Encoding.ASCII.GetBytes(TestString);
             if (Usersetting.highSpeed == 0)
             {
@@ -494,6 +510,11 @@ namespace TNCAX25Emulator
             else
             {
                 byte[] tosendFrame = new byte[256];
+                for (int i = 57; i < 223; i++)
+                {
+                    tosendFrame[i] = 0xAA;
+                }
+
                 System.Array.Copy(b2, tosendFrame, b2.Length);
                 mh.sendHDLCencodedframe(SSDV.encodeTelemetrybuffer(tosendFrame),0);
             }
@@ -553,6 +574,8 @@ namespace TNCAX25Emulator
             [DllImport("ssdvdll.dll", CallingConvention = CallingConvention.Cdecl)]
             unsafe public extern static Int16 decodeTelemetry(byte[] buffer);
 
+            [DllImport("ssdvdll.dll", CallingConvention = CallingConvention.Cdecl)]
+            unsafe public extern static Int16 decodeSSDV(byte[] buffer);
           /*  [DllImport("ssdvdll.dll", CallingConvention = CallingConvention.Cdecl)]
             public static extern IntPtr output_buffer(IntPtr length);*/
         
